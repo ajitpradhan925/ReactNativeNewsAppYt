@@ -9,11 +9,12 @@ import Onboarding from '@Screen/Onboarding';
 import NewsDetails from '@Screen/NewsDetails';
 import CategoryList from '@Screen/CategoryList';
 import About from '@Screen/About';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 
-
-const AuthStack = () => {
-
+const AuthStack = ({...props}) => {
+    const {isOnboardingDisabled} = props;
     const Stack = createStackNavigator();
 
     return (
@@ -21,7 +22,7 @@ const AuthStack = () => {
             screenOptions={{
                 headerShown: false
             }}
-            initialRouteName="Splash">
+            initialRouteName={isOnboardingDisabled ? 'Splash' : 'Onboarding' }>
             <Stack.Screen name="Splash" component={SplashScreen} />
             <Stack.Screen name="Tab" component={Tabs} />
             <Stack.Screen name="Login" component={Login} />
@@ -35,4 +36,14 @@ const AuthStack = () => {
 }
 
 
-export default AuthStack;
+AuthStack.propTypes = {
+    isOnboardingDisabled: PropTypes.bool.isRequired
+}
+
+const mapStateToProps = (state) => {
+    return {
+        isOnboardingDisabled: state.auth.isOnboardingDisabled
+    }
+}
+
+export default connect(mapStateToProps)(AuthStack);
