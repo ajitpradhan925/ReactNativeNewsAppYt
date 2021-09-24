@@ -17,7 +17,7 @@ const SplashScreen = () => {
     useEffect(() => {
         setTimeout(() => {
             hideSplashScreen();
-            navigation.navigate('Tab');
+            navigation.navigate('Login');
         }, 1000);
     }, []);
 
