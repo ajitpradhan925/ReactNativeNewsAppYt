@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'
-import { View, Text, ScrollView, TextInput, TouchableOpacity, } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, } from 'react-native'
 import { styles } from './styles';
 import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/dist/Ionicons';
@@ -20,6 +20,9 @@ const signInValidationSchema = yup.object().shape({
 const Login = () => {
 
     const navigation = useNavigation();
+
+    const [showSpinner, setShowSpinner] = useState(false);
+    const [showPassword, setShowPassword] = useState(true);
 
     const { colors: { background, text, lightGray5, card, secondary, primary }, dark } = useTheme();
 
@@ -46,11 +49,15 @@ const Login = () => {
                             password: ''
                         }}
                         onSubmit={async (values) => {
+                            setShowSpinner(true);
                             console.log("values ", values);
                             loginUser(values).then(res => {
                                 console.log("Response ", res);
+                                setShowSpinner(false);
+                                navigation.navigate('Home');
                             }).catch(err => {
-                                console.log("Error ", err);
+                                console.log("Error ", err.response.data?.msg);
+                                setShowSpinner(false);
                             })
                         }}>
                         {({ handleSubmit, isValid, values, errors, handleChange, touched }) => (
@@ -66,7 +73,7 @@ const Login = () => {
                                             onChangeText={handleChange('email')}
                                         />
                                         {(errors.email && touched.email) &&
-                                            <Text style={{ fontSize: 10, color: 'red' }}> {errors.email}</Text>}
+                                            <Text style={{ fontSize: 10, color: 'red', marginTop: scale(5) }}> {errors.email}</Text>}
                                     </View>
 
                                     <View style={styles().wrapper}>
@@ -76,19 +83,21 @@ const Login = () => {
                                                 <View>
                                                     <TextInput
                                                         placeholder="Enter Password"
-                                                        secureTextEntry={true}
+                                                        secureTextEntry={showPassword}
                                                         style={{ height: scale(50), color: text }}
                                                         name="password"
                                                         onChangeText={handleChange('password')}
                                                     />
 
                                                     {(errors.password && touched.password) &&
-                                                        <Text style={{ fontSize: 10, color: 'red' }}> {errors.password}</Text>}
+                                                        <Text style={{ fontSize: 10, color: 'red', marginTop: scale(5) }}> {errors.password}</Text>}
                                                 </View>
 
 
-                                                <TouchableOpacity style={{ alignSelf: 'center' }}>
-                                                    <Icon name="key-outline" size={20} color={text} />
+                                                <TouchableOpacity 
+                                                    onPress={() => setShowPassword(prevState => !prevState)}
+                                                    style={{ alignSelf: 'center' }}>
+                                                    <Icon name={showPassword ? 'key-outline' : 'key'} size={20} color={text} />
                                                 </TouchableOpacity>
                                             </View>
 
@@ -110,9 +119,10 @@ const Login = () => {
                                     <TouchableOpacity
                                         onPress={handleSubmit}
                                         style={{ backgroundColor: dark ? card : secondary, height: scale(50), borderRadius: scale(10), flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                                        <Text style={{ color: '#fff' }}>
+                                        <Text style={{ color: '#fff', marginLeft: scale(5) }}>
                                             Login
                                         </Text>
+                                        {showSpinner && (<ActivityIndicator color={'#fff'} />)}
                                     </TouchableOpacity>
                                 </View>
 
