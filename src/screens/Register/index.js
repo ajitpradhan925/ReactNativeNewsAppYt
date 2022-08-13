@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { styles } from './styles';
 import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/dist/Ionicons';
@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { Formik } from 'formik';
 import { registerUser } from '@Api/Auth';
+import {showSnackBar} from '@utils/SnackBar.js';
 
 const signUpValidationSchema = yup.object().shape({
     name: yup
@@ -70,10 +71,23 @@ const Register = () => {
                             registerUser(values).then(res => {
                                 console.log("Response ", res);
                                 setShowSpinner(false);
+                                Alert.alert(
+                                    " ",
+                                    res.msg,
+                                    [
+                                        {
+                                            text: 'Ok',
+                                            onPress: () => {
+                                                navigation.navigate('Login');
+                                            }
+                                        }
+                                    ]
+                                )
                                 // navigation.navigate('Home');
                             }).catch(err => {
                                 console.log("Error ", err.response.data?.msg);
                                 setShowSpinner(false);
+                                showSnackBar(err.response.data?.msg, 'ERROR');
                             })
                         }}
                     >

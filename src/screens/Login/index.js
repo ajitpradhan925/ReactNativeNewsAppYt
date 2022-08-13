@@ -8,6 +8,11 @@ import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { Formik, Field } from 'formik';
 import { loginUser } from '@Api/Auth';
+import {showSnackBar} from '@utils/SnackBar.js';
+import { connect } from 'react-redux';
+import * as authActions from '@Action/authActions.js';
+import PropTypes from 'prop-types';
+import {setTokenInterceptor} from '@utils/setTokenInterceptor.js';
 
 const signInValidationSchema = yup.object().shape({
     email: yup.string()
@@ -17,7 +22,9 @@ const signInValidationSchema = yup.object().shape({
 });
 
 
-const Login = () => {
+const Login = ({...props}) => {
+
+    const {updateUserLogin, updateUserAccessToken, user, isLoggedIn } = props;
 
     const navigation = useNavigation();
 
@@ -55,9 +62,19 @@ const Login = () => {
                                 console.log("Response ", res);
                                 setShowSpinner(false);
                                 navigation.navigate('Home');
+                                updateUserLogin(res, true);
+                                updateUserAccessToken(res.token);
+                                showSnackBar('Successfully LoggedIn');
+                                setTokenInterceptor(res);
+
+                                console.log("User coming from state", user);
+                                console.log("iosLoggedIn coming from state", isLoggedIn);
+
+
                             }).catch(err => {
                                 console.log("Error ", err.response.data?.msg);
                                 setShowSpinner(false);
+                                showSnackBar(err.response.data?.msg, 'ERROR');
                             })
                         }}>
                         {({ handleSubmit, isValid, values, errors, handleChange, touched }) => (
@@ -80,18 +97,18 @@ const Login = () => {
                                         <View style={styles(background, text, lightGray5).input}>
 
                                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                                <View>
+                                                {/* <View> */}
                                                     <TextInput
                                                         placeholder="Enter Password"
                                                         secureTextEntry={showPassword}
-                                                        style={{ height: scale(50), color: text }}
+                                                        style={{ height: scale(50), color: text, width: '93%' }}
                                                         name="password"
                                                         onChangeText={handleChange('password')}
                                                     />
 
                                                     {(errors.password && touched.password) &&
                                                         <Text style={{ fontSize: 10, color: 'red', marginTop: scale(5) }}> {errors.password}</Text>}
-                                                </View>
+                                                {/* </View> */}
 
 
                                                 <TouchableOpacity 
@@ -150,7 +167,7 @@ const Login = () => {
                     </View>
 
 
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                         <Text style={{ color: lightGray5 }}>
                             Skip
                         </Text>
@@ -161,4 +178,23 @@ const Login = () => {
     )
 }
 
-export default Login;
+Login.propTypes = {
+    user: PropTypes.object.isRequired,
+    isLoggedIn: PropTypes.bool.isRequired,
+    updateUserLogin: PropTypes.func.isRequired,
+    updateUserAccessToken: PropTypes.func.isRequired
+};
+
+const mapStateToProps = (state) => {
+    return {
+        user: state.auth.user,
+        isLoggedIn: state.auth.isLoggedIn
+    }
+}
+
+const mapDispatchToProps = (dispatch) => ({
+    updateUserLogin: (user, isLoggedIn) => dispatch(authActions.updateUserLogin(user, isLoggedIn)),
+    updateUserAccessToken: (token) => dispatch(authActions.updateUserAccessToken(token))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
